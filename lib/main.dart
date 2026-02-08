@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 
 import 'bindings/app_bindings.dart';
@@ -15,6 +16,14 @@ import 'utils/constants.dart';
 Future<void> main() async {
   // Initialize binding BEFORE runZonedGuarded to avoid zone mismatch
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables from .env file
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    // .env file is optional - fall back to dart-define or defaults
+    print('Note: .env file not found or could not be loaded: $e');
+  }
 
   // Initialize logger and crash reporter before error handlers
   final logger = AppLogger();

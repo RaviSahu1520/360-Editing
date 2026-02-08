@@ -1,16 +1,20 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AppConstants {
   static const String appName = 'Photo Editor + Auto Improve';
   static const String appVersion = 'v0.1.0';
 
   /// API base URL for backend calls.
   ///
-  /// Supported dart-define keys:
-  /// 1) PHOTO_EDITOR_API_URL (project-native)
-  /// 2) API_BASE_URL (compatible with common .env setups)
-  ///
-  /// Example:
-  /// flutter run --dart-define=API_BASE_URL=https://api.fitcheckaiapp.com
+  /// Priority: .env file > dart-define > default
   static String get apiBaseUrl {
+    // Try .env first
+    final envUrl = dotenv.env['API_BASE_URL'];
+    if (envUrl != null && envUrl.isNotEmpty) {
+      return envUrl;
+    }
+
+    // Try dart-define
     const projectUrl = String.fromEnvironment('PHOTO_EDITOR_API_URL');
     if (projectUrl.isNotEmpty) {
       return projectUrl;
@@ -25,17 +29,94 @@ class AppConstants {
     return 'https://api.fitcheckaiapp.com';
   }
 
-  /// Gemini API key for direct AI calls (fallback)
+  /// Gemini API key for direct AI calls
   ///
-  /// IMPORTANT: Set this via dart-define for production:
-  /// flutter run --dart-define=GEMINI_API_KEY=your_actual_key
+  /// Priority: .env file > dart-define > default (empty)
   static String get geminiApiKey {
-    const envKey = String.fromEnvironment('GEMINI_API_KEY');
-    if (envKey.isNotEmpty) {
+    // Try .env first
+    final envKey = dotenv.env['GEMINI_API_KEY'];
+    if (envKey != null && envKey.isNotEmpty) {
       return envKey;
     }
-    // No fallback - API key must be provided via dart-define
+
+    // Try dart-define
+    const dartDefineKey = String.fromEnvironment('GEMINI_API_KEY');
+    if (dartDefineKey.isNotEmpty) {
+      return dartDefineKey;
+    }
+
+    // No fallback
     return '';
+  }
+
+  /// Supabase Configuration
+  static String get supabaseUrl =>
+      dotenv.env['SUPABASE_URL'] ?? '';
+  static String get supabasePublishableKey =>
+      dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '';
+  static String get supabaseSecretKey =>
+      dotenv.env['SUPABASE_SECRET_KEY'] ?? '';
+  static String get supabaseJwtSecret =>
+      dotenv.env['SUPABASE_JWT_SECRET'] ?? '';
+  static String get supabaseStorageBucket =>
+      dotenv.env['SUPABASE_STORAGE_BUCKET'] ?? 'fitcheck-images';
+
+  /// Pinecone Configuration
+  static String get pineconeApiKey =>
+      dotenv.env['PINECONE_API_KEY'] ?? '';
+  static String get pineconeIndexName =>
+      dotenv.env['PINECONE_INDEX_NAME'] ?? 'fitcheck-items';
+  static String get pineconeEnvironment =>
+      dotenv.env['PINECONE_ENVIRONMENT'] ?? 'production';
+  static String get pineconeDimension =>
+      dotenv.env['PINECONE_DIMENSION'] ?? '768';
+
+  /// AI Provider Configuration
+  static String get aiDefaultProvider =>
+      dotenv.env['AI_DEFAULT_PROVIDER'] ?? 'custom';
+
+  /// Gemini AI Configuration
+  static String get aiGeminiApiUrl =>
+      dotenv.env['AI_GEMINI_API_URL'] ?? 'https://generativelanguage.googleapis.com/v1beta';
+  static String get aiGeminiApiKey =>
+      dotenv.env['AI_GEMINI_API_KEY'] ?? geminiApiKey;
+  static String get aiGeminiChatModel =>
+      dotenv.env['AI_GEMINI_CHAT_MODEL'] ?? 'gemini-3-flash-preview';
+  static String get aiGeminiImageModel =>
+      dotenv.env['AI_GEMINI_IMAGE_MODEL'] ?? 'gemini-3-pro-image-preview';
+
+  /// OpenAI Configuration
+  static String get aiOpenaiApiUrl =>
+      dotenv.env['AI_OPENAI_API_URL'] ?? 'https://api.openai.com/v1';
+  static String get aiOpenaiApiKey =>
+      dotenv.env['AI_OPENAI_API_KEY'] ?? '';
+  static String get aiOpenaiChatModel =>
+      dotenv.env['AI_OPENAI_CHAT_MODEL'] ?? 'gpt-4o';
+
+  /// Custom AI Provider Configuration
+  static String get aiCustomApiUrl =>
+      dotenv.env['AI_CUSTOM_API_URL'] ?? 'http://localhost:8317/v1';
+  static String get aiCustomApiKey =>
+      dotenv.env['AI_CUSTOM_API_KEY'] ?? '';
+  static String get aiCustomChatModel =>
+      dotenv.env['AI_CUSTOM_CHAT_MODEL'] ?? 'gemini-3-flash-preview';
+
+  /// Weather API
+  static String get weatherApiKey =>
+      dotenv.env['WEATHER_API_KEY'] ?? '';
+
+  /// Debug Mode
+  static bool get isDebug {
+    final debug = dotenv.env['DEBUG'];
+    if (debug != null) {
+      return debug.toLowerCase() == 'true';
+    }
+    // Check dart-define
+    const debugDefine = String.fromEnvironment('DEBUG');
+    if (debugDefine.isNotEmpty) {
+      return debugDefine.toLowerCase() == 'true';
+    }
+    return false;
   }
 
   static const int maxUploadBytes = 15 * 1024 * 1024;
@@ -47,7 +128,7 @@ class AppConstants {
   static const int historyLimit = 30;
   static const int recentLimit = 5;
   static const int renderDebounceMs = 50;
-  static const int networkTimeoutMs = 30000; // Increased timeout
+  static const int networkTimeoutMs = 30000;
   static const int networkRetryCount = 2;
 
   static const List<String> cropRatios = <String>[
